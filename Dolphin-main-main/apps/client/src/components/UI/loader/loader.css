@@ -1,0 +1,43 @@
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(243, 209, 131, 0.34), transparent 28%),
+    radial-gradient(circle at 100% 0%, rgba(205, 118, 55, 0.18), transparent 30%),
+    linear-gradient(180deg, #fff7e8 0%, #fffcf6 30%, #fff6e4 72%, #fffdf8 100%);
+}
+
+.loader-overlay.night {
+  background:
+    radial-gradient(circle at 12% 10%, rgba(143, 216, 255, 0.16) 0%, transparent 34%),
+    radial-gradient(circle at 88% 8%, rgba(255, 221, 174, 0.14) 0%, transparent 28%),
+    linear-gradient(180deg, #0b2232 0%, #163e59 100%);
+}
+
+.loader-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+}
+
+.logo-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 360px;
+  height: 180px;
+}
+
+.loader-logo {
+  width: 280px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 16px 26px rgba(122, 68, 27, 0.16));
+}
