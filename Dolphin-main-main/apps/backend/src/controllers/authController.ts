@@ -298,28 +298,17 @@ export const verifyOtp = async (req: Request, res: Response): Promise<any> => {
       if (String(otp).trim() !== testAuthOtp) {
         return res.status(400).json({ error: 'Incorrect OTP' })
       }
-
-      let testUser = await findUserByEmail(normalizedEmail)
-      if (!testUser) {
-        await createUserWithWallet({
-          email: normalizedEmail,
-          otp: null,
-          otpExpiresAt: null,
-          onboardingStep: 0,
-          emailVerified: true,
-        })
-        testUser = await findUserByEmail(normalizedEmail)
+      // Fully DB-independent test login so UI auth can be validated
+      // even when database/email infrastructure is unavailable.
+      const testUser = {
+        id: `test-${Buffer.from(normalizedEmail).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 24)}`,
+        email: normalizedEmail,
+        role: 'customer',
+        phone: null as string | null,
+        phoneVerified: false,
       }
-
-      if (!testUser) {
-        return res.status(500).json({ error: 'Unable to create test user for OTP flow' })
-      }
-
-      await clearUserOtpByEmail(normalizedEmail)
-      await markEmailVerified(normalizedEmail)
-      const accessToken = signAccessToken(testUser.id, testUser.role ?? 'customer')
-      const { token: refreshToken } = signRefreshToken(testUser.id, testUser.role ?? 'customer')
-      await saveRefreshToken(testUser.id, refreshToken, ONE_WEEK_MS)
+      const accessToken = signAccessToken(testUser.id, testUser.role)
+      const { token: refreshToken } = signRefreshToken(testUser.id, testUser.role)
 
       return res.json({
         message: 'OTP verified successfully',
