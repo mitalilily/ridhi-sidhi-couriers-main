@@ -25,13 +25,13 @@ const authHighlights = [
     icon: <TbTruckDelivery size={18} />,
   },
   {
-    title: 'Live verification preview',
-    text: 'Inline OTP and verification codes are surfaced on-screen for local and console-driven auth flows.',
+    title: 'Secure account access',
+    text: 'Quick OTP and password sign-in keeps your team connected to daily dispatch and delivery operations.',
     icon: <FiShield size={18} />,
   },
   {
     title: 'Actionable insights',
-    text: 'The app shell mirrors the landing page look while preserving the current auth and dashboard logic.',
+    text: 'Monitor shipping performance, COD movement, and exceptions with clear operational visibility.',
     icon: <TbChartBar size={18} />,
   },
 ]
@@ -264,7 +264,7 @@ export default function AuthShell({
                         <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mt: 1.25 }}>
                           <FiCheckCircle size={14} color={brand.success} />
                           <Typography sx={{ color: brand.ink, fontSize: '0.82rem', fontWeight: 600 }}>
-                            Existing token storage and auth guards remain unchanged
+                            Access orders, pickups, returns, and tracking updates from one place
                           </Typography>
                         </Stack>
                       </Box>
@@ -295,4 +295,3 @@ export default function AuthShell({
     </Box>
   )
 }
-

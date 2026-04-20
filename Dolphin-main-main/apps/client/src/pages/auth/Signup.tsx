@@ -14,10 +14,10 @@ export default function Signup() {
   return (
     <AuthShell
       eyebrow="Create Account"
-      title="Start with a faster, cleaner seller onboarding flow."
-      subtitle="Signup is now wired directly from the landing page and still reuses the backend’s existing password setup and verification endpoints."
-      helperTitle="Name capture stays frontend-only"
-      helperText="The backend schema is unchanged, so your name is simply used to prefill onboarding after verification instead of changing any API contracts."
+      title="Create your shipping operations account."
+      subtitle="Set up your seller workspace to start shipping, tracking, and managing logistics workflows in one platform."
+      helperTitle="Get started in minutes"
+      helperText="Complete sign-up and move directly into onboarding for pickup addresses, KYC, and courier-ready operations."
       showChrome={false}
     >
       <Stack spacing={2.4}>
@@ -33,8 +33,7 @@ export default function Signup() {
             Create your account
           </Typography>
           <Typography sx={{ color: brand.inkSoft, lineHeight: 1.72 }}>
-            Enter your name, email, and password to create access using the current backend flow.
-            Verification codes will show inline when available.
+            Enter your name, email, and password to create your account and begin shipping setup.
           </Typography>
         </Stack>
 
@@ -50,3 +49,4 @@ export default function Signup() {
     </AuthShell>
   )
 }
+

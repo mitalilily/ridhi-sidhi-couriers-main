@@ -18,9 +18,9 @@ export default function Login() {
     <AuthShell
       eyebrow="Seller Login"
       title="Access the RS Express shipping workspace."
-      subtitle="Login now flows through a cleaner branded interface while keeping the existing authentication, token storage, and onboarding logic exactly intact."
-      helperTitle="Authentication first flow"
-      helperText="The app now opens on authentication, and dashboard access continues through the existing protected routes after login."
+      subtitle="Sign in to manage orders, pickups, courier allocation, tracking, and post-shipment actions from one control center."
+      helperTitle="Built for shipping teams"
+      helperText="After login, you can immediately work on dispatch, NDR, returns, COD, and customer support operations."
       showChrome={false}
     >
       <Stack spacing={2.4}>
@@ -29,7 +29,7 @@ export default function Login() {
             Login
           </Typography>
           <Typography sx={{ color: brand.inkSoft, lineHeight: 1.72 }}>
-            Choose OTP access or email plus password. If the backend exposes an OTP or verification token, the page will display it inline for you.
+            Choose OTP access or email plus password to securely enter your shipping dashboard.
           </Typography>
         </Stack>
 
@@ -76,4 +76,3 @@ export default function Login() {
     </AuthShell>
   )
 }
-

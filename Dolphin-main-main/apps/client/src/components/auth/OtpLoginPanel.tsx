@@ -62,7 +62,7 @@ export default function OtpLoginPanel() {
         setCode('')
         toast.open({
           message: inlineCode
-            ? 'Verification code generated. Use the inline code preview below.'
+            ? 'Your verification code is ready. Use it below to continue.'
             : 'Verification code sent to your email.',
           severity: 'success',
         })
@@ -105,14 +105,14 @@ export default function OtpLoginPanel() {
           Continue with email OTP
         </Typography>
         <Typography sx={{ color: brand.inkSoft, lineHeight: 1.7, fontSize: '0.92rem' }}>
-          Use your registered email for a passwordless login. Existing auth endpoints and token storage remain untouched.
+          Use your registered email for passwordless access to order management, tracking, and shipment operations.
         </Typography>
       </Stack>
 
       <AuthCodePreview
-        title="Console OTP preview"
+        title="Email OTP code"
         code={inlineOtp}
-        helper="When auth codes are exposed by the backend, the latest OTP appears here as well as in your console logs or email flow."
+        helper="Enter this OTP to securely continue into your shipping dashboard."
       />
 
       {step === 'request' ? (
@@ -215,7 +215,8 @@ export default function OtpLoginPanel() {
       <Stack direction="row" spacing={1} alignItems="center">
         <FiShield size={14} color={brand.success} />
         <Typography sx={{ color: brand.inkSoft, fontSize: '0.82rem', lineHeight: 1.6 }}>
-    </Typography>
+          OTP login helps your operations team access shipping tools quickly without sharing passwords.
+        </Typography>
       </Stack>
 
       <CustomModal

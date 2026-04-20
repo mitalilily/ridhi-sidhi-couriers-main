@@ -100,7 +100,7 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
             setCode('')
             toast.open({
               message: verificationCode
-                ? 'Verification code generated. Use the inline preview below.'
+                ? 'Your verification code is ready. Continue below.'
                 : 'Verification code sent to your email.',
               severity: 'success',
             })
@@ -154,8 +154,8 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
     mode === 'signup' ? 'Create your account with password access' : 'Sign in with email and password'
   const description =
     mode === 'signup'
-      ? 'We keep the existing backend flow intact. Your name is used only to prefill onboarding after verification.'
-      : 'If this account needs email verification, the existing backend will issue a code and the UI will reveal it inline here.'
+      ? 'Create your account to unlock order creation, courier selection, tracking, and billing workflows.'
+      : 'Sign in to manage daily shipping operations including pickups, NDR, returns, and support.'
 
   return (
     <Stack spacing={2.2}>
@@ -169,9 +169,9 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
       </Stack>
 
       <AuthCodePreview
-        title={mode === 'signup' ? 'Signup verification preview' : 'Password flow verification preview'}
+        title={mode === 'signup' ? 'Signup verification code' : 'Login verification code'}
         code={inlineCode}
-        helper="If the backend exposes verification tokens for this flow, the latest code appears here so you can continue without checking the console separately."
+        helper="Use this code to complete secure account verification and continue to your shipping dashboard."
       />
 
       {step === 'form' ? (
@@ -311,7 +311,7 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
       <Stack direction="row" spacing={1} alignItems="center">
         <FiShield size={14} color={brand.success} />
         <Typography sx={{ color: brand.inkSoft, fontSize: '0.82rem', lineHeight: 1.6 }}>
-          Password access reuses the current `/auth/request-password-login` and `/auth/verify-user-email` flow.
+          Your account is protected with secure password and verification-code checks.
         </Typography>
       </Stack>
 
