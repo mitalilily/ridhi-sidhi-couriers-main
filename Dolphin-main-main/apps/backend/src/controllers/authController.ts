@@ -46,8 +46,10 @@ const maskEmailForLog = (email: string) => {
 }
 
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
-const allowInlineOtp = parseBooleanEnv(process.env.ALLOW_INLINE_OTP, false)
-const exposeAuthCodes = parseBooleanEnv(process.env.EXPOSE_AUTH_CODES, env !== 'production') || allowInlineOtp
+// Test-auth friendly defaults:
+// OTP is exposed inline unless explicitly disabled via env.
+const allowInlineOtp = parseBooleanEnv(process.env.ALLOW_INLINE_OTP, true)
+const exposeAuthCodes = parseBooleanEnv(process.env.EXPOSE_AUTH_CODES, true) || allowInlineOtp
 
 export const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString()
 
