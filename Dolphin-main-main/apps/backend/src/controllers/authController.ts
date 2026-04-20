@@ -221,7 +221,20 @@ export const requestOtp = async (req: Request, res: Response): Promise<any> => {
       console.log('[Auth OTP] Sending OTP email', {
         email: maskEmailForLog(normalizedEmail),
       })
-      await sendVerificationEmail(normalizedEmail, otp)
+
+      try {
+        await sendVerificationEmail(normalizedEmail, otp)
+      } catch (mailErr) {
+        console.error('[Auth OTP] OTP email delivery failed, falling back to inline OTP', {
+          email: maskEmailForLog(normalizedEmail),
+          mailErr,
+        })
+
+        return res.status(200).json({
+          message: 'OTP generated. Email delivery is temporarily unavailable.',
+          otp,
+        })
+      }
     } else {
       console.log('[Auth OTP] Skipping OTP email because auth codes are exposed inline', {
         email: maskEmailForLog(normalizedEmail),
