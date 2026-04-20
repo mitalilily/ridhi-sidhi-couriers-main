@@ -5,9 +5,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
-  const rawApiUrl = env.VITE_API_URL || 'https://delexpress-backend.onrender.com/api'
+  const rawApiUrl = env.VITE_API_URL || 'https://ridhi-sidhi-couriers-main-production.up.railway.app/api'
   const localApiOrigin = env.VITE_LOCAL_API_ORIGIN || 'http://localhost:5002'
-  let proxyTarget = 'https://delexpress-backend.onrender.com'
+  let proxyTarget = 'https://ridhi-sidhi-couriers-main-production.up.railway.app'
   let proxySecure = true
 
   if (rawApiUrl.startsWith('/')) {
@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
       proxyTarget = parsed.origin
       proxySecure = parsed.protocol === 'https:'
     } catch {
-    proxyTarget = 'https://delexpress-backend.onrender.com'
+    proxyTarget = 'https://ridhi-sidhi-couriers-main-production.up.railway.app'
       proxySecure = true
     }
   }

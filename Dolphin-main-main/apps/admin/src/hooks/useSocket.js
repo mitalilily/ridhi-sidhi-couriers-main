@@ -8,10 +8,12 @@ export const useSocket = () => {
   const { addNotification } = useNotificationsStore()
   const isLocalhost =
     typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
-  const socketUrl =
-    process.env.REACT_APP_SOCKET_URL ||
-    process.env.REACT_APP_API_BASE_URL?.replace(/\/api\/?$/, '') ||
-    (isLocalhost ? 'http://127.0.0.1:5002' : 'https://delexpress-backend.onrender.com')
+const socketUrl =
+  process.env.REACT_APP_SOCKET_URL ||
+  process.env.REACT_APP_API_BASE_URL?.replace(/\/api\/?$/, '') ||
+  (isLocalhost
+    ? 'http://127.0.0.1:5002'
+    : 'https://ridhi-sidhi-couriers-main-production.up.railway.app')
 
   useEffect(() => {
     if (!userId) return
