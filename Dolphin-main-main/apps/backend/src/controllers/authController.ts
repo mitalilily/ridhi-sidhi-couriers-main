@@ -239,11 +239,16 @@ export const requestOtp = async (req: Request, res: Response): Promise<any> => {
       email: maskEmailForLog(normalizedEmail),
       err,
     })
-    const message =
-      err instanceof Error && err.message.includes('Email service is not configured')
-        ? err.message
-        : 'Something went wrong while requesting OTP'
-    return res.status(500).json({ error: message })
+    if (err instanceof Error && err.message.includes('Email service is not configured')) {
+      // Keep OTP login unblocked when SMTP credentials are missing.
+      return res.status(200).json({
+        message: 'OTP generated. Email delivery is temporarily unavailable.',
+        otp,
+        warning: err.message,
+      })
+    }
+
+    return res.status(500).json({ error: 'Something went wrong while requesting OTP' })
   }
 }
 

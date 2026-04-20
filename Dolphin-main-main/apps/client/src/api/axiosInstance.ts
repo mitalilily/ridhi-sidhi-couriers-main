@@ -11,7 +11,10 @@ const getApiBaseUrl = () => {
   try {
     if (!RAW_API_BASE_URL) return fallback
 
-    const candidate = new URL(RAW_API_BASE_URL, window.location.origin)
+    const normalizedRawApiUrl = /^https?:\/\//i.test(RAW_API_BASE_URL)
+      ? RAW_API_BASE_URL
+      : `https://${RAW_API_BASE_URL}`
+    const candidate = new URL(normalizedRawApiUrl, window.location.origin)
     const currentHost = window.location.hostname
     const isHostedFrontend =
       currentHost.endsWith('netlify.app') ||
