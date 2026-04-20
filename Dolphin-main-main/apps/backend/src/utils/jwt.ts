@@ -8,8 +8,20 @@ import path from 'path'
 const env = process.env.NODE_ENV || 'development'
 dotenv.config({ path: path.resolve(__dirname, `../../.env.${env}`) })
 
-const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET!
-const REFRESH_SECRET = process.env.REFRESH_TOKEN_SECRET!
+const ACCESS_SECRET =
+  process.env.ACCESS_TOKEN_SECRET ||
+  process.env.JWT_SECRET ||
+  'ridhi-sidhi-test-access-secret'
+const REFRESH_SECRET =
+  process.env.REFRESH_TOKEN_SECRET ||
+  process.env.JWT_SECRET ||
+  'ridhi-sidhi-test-refresh-secret'
+
+if (!process.env.ACCESS_TOKEN_SECRET || !process.env.REFRESH_TOKEN_SECRET) {
+  console.warn(
+    '[Auth JWT] ACCESS_TOKEN_SECRET/REFRESH_TOKEN_SECRET missing. Using test fallback secrets.',
+  )
+}
 
 export interface RefreshPayload {
   sub: string // userId
