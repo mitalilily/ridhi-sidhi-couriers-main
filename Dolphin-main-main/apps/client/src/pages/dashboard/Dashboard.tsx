@@ -99,12 +99,12 @@ export default function Dashboard() {
     )
   }
 
-  if (error || !stats) {
+  if (error && !stats) {
     return (
       <Box
         sx={{
           minHeight: '58vh',
-          borderRadius: 1,
+          borderRadius: 2,
           display: 'grid',
           placeItems: 'center',
           border: `1px solid ${alpha(brand.danger, 0.14)}`,
@@ -113,22 +113,24 @@ export default function Dashboard() {
       >
         <Box textAlign="center" sx={{ p: 4 }}>
           <Typography variant="h5" fontWeight={800} color={brand.danger} gutterBottom>
-            Connectivity Issue
+            Dashboard unavailable right now
           </Typography>
           <Typography color="text.secondary" sx={{ mb: 3 }}>
-            We encountered an error while syncing your command center.
+            We could not load your dashboard. Please retry once the connection is restored.
           </Typography>
           <Button
             variant="contained"
             onClick={() => refetch()}
             sx={{ background: brandGradients.button, color: brand.ink }}
           >
-            Retry Connection
+            Retry Sync
           </Button>
         </Box>
       </Box>
     )
   }
+
+  if (!stats) return null
 
   const todayOps = stats.todayOperations || {}
   const financial = stats.financial || {}

@@ -13,6 +13,13 @@ interface AuthShellProps {
   subtitle: string
   helperTitle: string
   helperText: string
+  pills?: string[]
+  highlights?: Array<{
+    title: string
+    text: string
+    icon: React.ReactNode
+  }>
+  footerNote?: string
   variant?: 'default' | 'compact'
   showChrome?: boolean
   children: React.ReactNode
@@ -42,6 +49,9 @@ export default function AuthShell({
   subtitle,
   helperTitle,
   helperText,
+  pills = ['Built for ecommerce brands', 'Secure dashboard access', 'RS Express control center'],
+  highlights = authHighlights,
+  footerNote = 'Access orders, pickups, returns, and tracking updates from one place',
   variant = 'default',
   showChrome = true,
   children,
@@ -105,7 +115,7 @@ export default function AuthShell({
                 variant="soft"
                 sx={{
                   p: 1.8,
-                  borderRadius: '24px',
+                  borderRadius: '18px',
                   border: `1px solid ${alpha(brand.sky, 0.34)}`,
                 }}
               >
@@ -157,8 +167,8 @@ export default function AuthShell({
                 }}
               >
                 <Stack spacing={3.2} sx={{ position: 'relative', zIndex: 1 }}>
-                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                    {['Built for ecommerce teams', 'Secure account access', 'RS Express dashboard'].map((pill) => (
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    {pills.map((pill) => (
                       <Chip
                         key={pill}
                         label={pill}
@@ -167,6 +177,7 @@ export default function AuthShell({
                           color: brand.ink,
                           border: `1px solid ${alpha('#FFFFFF', 0.6)}`,
                           fontWeight: 700,
+                          borderRadius: '12px',
                         }}
                       />
                     ))}
@@ -209,9 +220,9 @@ export default function AuthShell({
                   </Stack>
 
                   <Grid container spacing={1.6}>
-                    {authHighlights.map((item) => (
+                    {highlights.map((item) => (
                       <Grid key={item.title} size={{ xs: 12, sm: 4 }}>
-                        <BrandSurface variant="soft" sx={{ height: '100%', p: 2.1, borderRadius: '28px' }}>
+                        <BrandSurface variant="soft" sx={{ height: '100%', p: 2.1, borderRadius: '18px' }}>
                           <Stack spacing={1.2}>
                             <Box
                               sx={{
@@ -238,7 +249,7 @@ export default function AuthShell({
                     ))}
                   </Grid>
 
-                  <BrandSurface variant="glass" sx={{ p: 2.1, borderRadius: '28px' }}>
+                  <BrandSurface variant="glass" sx={{ p: 2.1, borderRadius: '18px' }}>
                     <Stack direction="row" spacing={1.2} alignItems="flex-start">
                       <Box
                         sx={{
@@ -264,7 +275,7 @@ export default function AuthShell({
                         <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mt: 1.25 }}>
                           <FiCheckCircle size={14} color={brand.success} />
                           <Typography sx={{ color: brand.ink, fontSize: '0.82rem', fontWeight: 600 }}>
-                            Access orders, pickups, returns, and tracking updates from one place
+                            {footerNote}
                           </Typography>
                         </Stack>
                       </Box>

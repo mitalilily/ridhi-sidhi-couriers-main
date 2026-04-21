@@ -103,10 +103,11 @@ export default function CustomSelectSearchable({
                       width: anchorRef.current?.offsetWidth || 250,
                       maxHeight: 280,
                       overflowY: 'auto',
-                      borderRadius: 1,
+                      borderRadius: 2,
                       mt: 1,
                       border: `1px solid ${alpha(DE_BLUE, 0.1)}`,
                       boxShadow: `0 12px 32px ${alpha(DE_BLUE, 0.12)}`,
+                      p: 0.4,
                     }}
                   >
                     <List disablePadding>
@@ -126,6 +127,7 @@ export default function CustomSelectSearchable({
                               sx={{
                                 py: 1.2,
                                 px: 1.8,
+                                borderRadius: 2,
                                 borderBottom: `1px solid ${alpha(DE_BLUE, 0.05)}`,
                                 '&:last-child': { borderBottom: 'none' },
                                 bgcolor: isSelected ? alpha(DE_BLUE, 0.06) : 'transparent',

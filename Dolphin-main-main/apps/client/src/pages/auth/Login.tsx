@@ -7,6 +7,8 @@ import OtpLoginPanel from '../../components/auth/OtpLoginPanel'
 import FullScreenLoader from '../../components/UI/loader/FullScreenLoader'
 import { useAuth } from '../../context/auth/AuthContext'
 import { brand, brandGradients } from '../../theme/brand'
+import { FiShield } from 'react-icons/fi'
+import { TbChartBar, TbTruckDelivery } from 'react-icons/tb'
 
 export default function Login() {
   const { loading } = useAuth()
@@ -17,10 +19,29 @@ export default function Login() {
   return (
     <AuthShell
       eyebrow="Seller Login"
-      title="Access the RS Express shipping workspace."
-      subtitle="Sign in to manage orders, pickups, courier allocation, tracking, and post-shipment actions from one control center."
-      helperTitle="Built for shipping teams"
-      helperText="After login, you can immediately work on dispatch, NDR, returns, COD, and customer support operations."
+      title="Secure access to your shipping control center"
+      subtitle="Sign in to the RS Express dashboard and manage your logistics operations with speed, security, and complete visibility."
+      helperTitle="Manage shipping with confidence"
+      helperText="Access orders, pickups, returns, and live tracking updates anytime from one powerful platform."
+      pills={['Built for growing ecommerce brands', 'Fast and secure login', 'Smarter shipping decisions']}
+      highlights={[
+        {
+          title: 'Everything in one dashboard',
+          text: 'Handle orders, pickups, courier assignments, tracking updates, returns, billing, and support from a single easy-to-use workspace.',
+          icon: <TbTruckDelivery size={18} />,
+        },
+        {
+          title: 'Fast and secure login',
+          text: 'Use OTP or password sign-in for quick, reliable access so your team can stay focused on daily operations.',
+          icon: <FiShield size={18} />,
+        },
+        {
+          title: 'Smarter shipping decisions',
+          text: 'Track delivery performance, COD remittances, delays, and exceptions with real-time insights that help you improve efficiency.',
+          icon: <TbChartBar size={18} />,
+        },
+      ]}
+      footerNote="From dispatch to NDR management, returns handling, and customer support, RS Express helps simplify every step of fulfillment."
       showChrome={false}
     >
       <Stack spacing={2.4}>
@@ -29,14 +50,14 @@ export default function Login() {
             Login
           </Typography>
           <Typography sx={{ color: brand.inkSoft, lineHeight: 1.72 }}>
-            Choose OTP access or email plus password to securely enter your shipping dashboard.
+            Use OTP or password sign-in to access your dashboard quickly and securely.
           </Typography>
         </Stack>
 
         <Box
           sx={{
             p: 0.6,
-            borderRadius: 999,
+            borderRadius: 3,
             backgroundColor: 'rgba(198,231,255,0.18)',
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
@@ -52,7 +73,7 @@ export default function Login() {
               type="button"
               onClick={() => setMode(item.value as 'otp' | 'password')}
               sx={{
-                borderRadius: 999,
+                borderRadius: 3,
                 py: 1.2,
                 background: mode === item.value ? brandGradients.button : 'transparent',
                 color: brand.ink,

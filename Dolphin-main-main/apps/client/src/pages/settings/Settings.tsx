@@ -50,9 +50,9 @@ const SURFACE = '#FFFDF8'
 
 const sections: Section[] = [
   {
-    title: 'Account Control',
-    badge: 'Identity',
-    summary: 'Business profile, access credentials, KYC, payout accounts, and team permissions.',
+    title: 'Account Management',
+    badge: 'Quick Access',
+    summary: 'Update business profile, login credentials, KYC details, payout accounts, and team access permissions.',
     tone: INK,
     icon: <TbShieldCog size={20} />,
     items: [
@@ -89,9 +89,9 @@ const sections: Section[] = [
     ],
   },
   {
-    title: 'Shipping Operations',
-    badge: 'Execution',
-    summary: 'Pickup network, billing logic, invoice output, and shipping label configuration.',
+    title: 'Shipping Setup',
+    badge: 'Operations',
+    summary: 'Configure pickup preferences, billing rules, invoice settings, and shipping label formats with ease.',
     tone: CLAY,
     icon: <TbChecklist size={20} />,
     items: [
@@ -122,9 +122,9 @@ const sections: Section[] = [
     ],
   },
   {
-    title: 'Integrations And Routing',
-    badge: 'Connectivity',
-    summary: 'Sales channels, courier priority rules, API keys, and webhook connectivity.',
+    title: 'Integrations & Automation',
+    badge: 'Automation',
+    summary: 'Connect sales channels, manage courier priorities, generate API keys, and control webhook connections.',
     tone: TEAL,
     icon: <TbPlugConnected size={20} />,
     items: [
@@ -152,18 +152,18 @@ const sections: Section[] = [
 
 const heroStats = [
   {
-    label: 'Settings domains',
+    label: 'Main domains',
     value: String(sections.length),
     tone: INK,
   },
   {
-    label: 'Config modules',
+    label: 'Management modules',
     value: String(sections.reduce((sum, section) => sum + section.items.length, 0)),
     tone: CLAY,
   },
   {
-    label: 'Ops focus',
-    value: 'Account + Shipping + Integrations',
+    label: 'Quick access',
+    value: 'Smart search + category navigation',
     tone: TEAL,
   },
 ]
@@ -218,7 +218,7 @@ const SettingCard = ({ item, tone }: { item: SettingItem; tone: string }) => {
             sx={{
               width: 28,
               height: 28,
-              borderRadius: 999,
+              borderRadius: 3,
               display: 'grid',
               placeItems: 'center',
               bgcolor: alpha(tone, 0.08),
@@ -304,12 +304,13 @@ export default function SettingsPage() {
                       <MdTune size={20} />
                     </Box>
                     <Chip
-                      label="Control Center"
+                      label="Settings Workspace"
                       sx={{
                         bgcolor: alpha(INK, 0.08),
                         color: INK,
                         border: `1px solid ${alpha(INK, 0.1)}`,
                         fontWeight: 800,
+                        borderRadius: 3,
                       }}
                     />
                   </Stack>
@@ -323,7 +324,7 @@ export default function SettingsPage() {
                       color: INK,
                     }}
                   >
-                    Settings built like an operations workspace, not a flat menu.
+                    Settings designed for smooth business operations
                   </Typography>
 
                   <Typography
@@ -335,17 +336,28 @@ export default function SettingsPage() {
                       maxWidth: 680,
                     }}
                   >
-                    Manage account controls, shipping configuration, payout logic, and integrations from
-                    a single professional admin surface.
+                    Manage your account, shipping setup, payouts, and integrations from one organized control panel.
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      mt: 1,
+                      fontSize: '0.9rem',
+                      color: alpha(INK, 0.68),
+                      lineHeight: 1.65,
+                      maxWidth: 680,
+                    }}
+                  >
+                    Quick Access helps your team find any setting instantly with smart search and category-based navigation.
                   </Typography>
                 </Box>
 
                 <Box sx={{ width: { xs: '100%', lg: 360 } }}>
                   <CustomSelectSearchable
-                    label="Jump To Setting"
+                    label="Quick Access"
                     items={flattenedItems}
                     onSelect={(key) => navigate(key)}
-                    placeholder="Search settings..."
+                    placeholder="Search settings instantly..."
                   />
                 </Box>
               </Stack>
@@ -393,6 +405,10 @@ export default function SettingsPage() {
                   </Box>
                 ))}
               </Box>
+
+              <Typography sx={{ color: TEXT_MUTED, fontSize: '0.92rem', lineHeight: 1.65 }}>
+                Complete Settings Control: all essential tools are grouped into 3 main domains and 12 management modules for faster operations.
+              </Typography>
             </Stack>
           </Box>
 
@@ -475,6 +491,23 @@ export default function SettingsPage() {
               </Box>
             ))}
           </Stack>
+
+          <Box
+            sx={{
+              p: { xs: 2, md: 2.4 },
+              borderRadius: 5,
+              border: `1px solid ${alpha(TEAL, 0.12)}`,
+              background: `linear-gradient(135deg, ${alpha(TEAL, 0.08)} 0%, rgba(255,255,255,0.96) 100%)`,
+              boxShadow: `0 16px 30px ${alpha(INK, 0.05)}`,
+            }}
+          >
+            <Typography sx={{ color: INK, fontWeight: 800, mb: 0.55 }}>
+              Built for growing teams
+            </Typography>
+            <Typography sx={{ color: TEXT_MUTED, lineHeight: 1.65, maxWidth: 760 }}>
+              A professional settings workspace made to help ecommerce businesses run faster and smarter.
+            </Typography>
+          </Box>
         </Stack>
       </Container>
     </Box>

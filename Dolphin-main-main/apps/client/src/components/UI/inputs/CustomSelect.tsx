@@ -108,7 +108,7 @@ export default function CustomSelect({
                     elevation={8}
                     sx={{
                       bgcolor: '#ffffff',
-                      borderRadius: 3,
+                      borderRadius: 2,
                       border: `1px solid ${alpha(brand.ink, 0.12)}`,
                       boxShadow: `0 18px 34px ${alpha(brand.ink, 0.1)}`,
                       width: anchorRef.current

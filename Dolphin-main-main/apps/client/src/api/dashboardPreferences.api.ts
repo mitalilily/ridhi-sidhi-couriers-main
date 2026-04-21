@@ -16,9 +16,42 @@ export interface DashboardPreferences {
   }
 }
 
+const fallbackDashboardPreferences: DashboardPreferences = {
+  widgetVisibility: {},
+  widgetOrder: [
+    'quickStats',
+    'quickActions',
+    'insights',
+    'actionItems',
+    'performanceMetrics',
+    'ordersTrend',
+    'financialHealth',
+    'recentActivity',
+    'todaysOperations',
+    'orderStatusChart',
+    'courierComparison',
+    'metricsOverview',
+    'courierPerformance',
+    'topDestinations',
+  ],
+  layout: {
+    columns: 12,
+    spacing: 3,
+    cardStyle: 'default',
+    showGridLines: false,
+  },
+  dateRange: {
+    defaultRange: '30days',
+  },
+}
+
 export const getDashboardPreferences = async (): Promise<DashboardPreferences> => {
-  const { data } = await axiosInstance.get('/dashboard/preferences')
-  return data.success ? data.data : ({} as DashboardPreferences)
+  try {
+    const { data } = await axiosInstance.get('/dashboard/preferences')
+    return data.success ? { ...fallbackDashboardPreferences, ...data.data } : fallbackDashboardPreferences
+  } catch {
+    return fallbackDashboardPreferences
+  }
 }
 
 export const saveDashboardPreferences = async (
