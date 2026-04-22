@@ -1,14 +1,18 @@
-import { Box, Stack, Typography } from '@mui/material'
+import { Box, Button, Stack, Typography } from '@mui/material'
 import { Link as RouterLink } from 'react-router-dom'
 import AuthShell from '../../components/auth/AuthShell'
 import CredentialAuthForm from '../../components/auth/CredentialAuthForm'
+import OtpLoginPanel from '../../components/auth/OtpLoginPanel'
 import FullScreenLoader from '../../components/UI/loader/FullScreenLoader'
 import { useAuth } from '../../context/auth/AuthContext'
-import { brand } from '../../theme/brand'
-import { TbChartBar, TbShieldLock, TbTruckDelivery } from 'react-icons/tb'
+import { brand, brandGradients } from '../../theme/brand'
+import { FiShield } from 'react-icons/fi'
+import { TbChartBar, TbTruckDelivery } from 'react-icons/tb'
+import { useState } from 'react'
 
 export default function Login() {
   const { loading } = useAuth()
+  const [mode, setMode] = useState<'otp' | 'password'>('otp')
 
   if (loading) return <FullScreenLoader />
 
@@ -19,7 +23,7 @@ export default function Login() {
       subtitle="Sign in to the RS Express dashboard and manage your logistics operations with speed, security, and complete visibility."
       helperTitle="Manage shipping with confidence"
       helperText="Access orders, pickups, returns, and live tracking updates anytime from one powerful platform."
-      pills={['Built for growing ecommerce brands', 'Instant test access enabled', 'Smarter shipping decisions']}
+      pills={['Built for growing ecommerce brands', 'Fast login UI', 'Smarter shipping decisions']}
       highlights={[
         {
           title: 'Everything in one dashboard',
@@ -27,9 +31,9 @@ export default function Login() {
           icon: <TbTruckDelivery size={18} />,
         },
         {
-          title: 'Instant test access',
-          text: 'Testing mode lets any valid email enter immediately without OTP friction so you can exercise the full flow faster.',
-          icon: <TbShieldLock size={18} />,
+          title: 'Fast login UI',
+          text: 'Test mode keeps the login surfaces visible while skipping the real verification step underneath.',
+          icon: <FiShield size={18} />,
         },
         {
           title: 'Smarter shipping decisions',
@@ -46,11 +50,42 @@ export default function Login() {
             Login
           </Typography>
           <Typography sx={{ color: brand.inkSoft, lineHeight: 1.72 }}>
-            Sign in with email and password, or use any valid email in testing mode for instant access.
+            Sign in with email and password, or use the email-only OTP panel for a UI-only test flow.
           </Typography>
         </Stack>
 
-        <CredentialAuthForm mode="login" />
+        <Box
+          sx={{
+            p: 0.6,
+            borderRadius: 3,
+            backgroundColor: 'rgba(198,231,255,0.18)',
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 0.6,
+          }}
+        >
+          {[
+            { value: 'otp', label: 'Email OTP' },
+            { value: 'password', label: 'Password' },
+          ].map((item) => (
+            <Button
+              key={item.value}
+              type="button"
+              onClick={() => setMode(item.value as 'otp' | 'password')}
+              sx={{
+                borderRadius: 3,
+                py: 1.2,
+                background: mode === item.value ? brandGradients.button : 'transparent',
+                color: brand.ink,
+                fontWeight: 700,
+              }}
+            >
+              {item.label}
+            </Button>
+          ))}
+        </Box>
+
+        {mode === 'otp' ? <OtpLoginPanel /> : <CredentialAuthForm mode="login" />}
 
         <Typography sx={{ color: brand.inkSoft, textAlign: 'center', fontSize: '0.88rem' }}>
           New to RS Express?{' '}

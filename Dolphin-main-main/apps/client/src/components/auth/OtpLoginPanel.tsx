@@ -17,6 +17,8 @@ import CodeInput from './CodeInput'
 import { extractInlineCode } from './inlineCode'
 import { brand } from '../../theme/brand'
 
+const TEST_MODE = import.meta.env.VITE_TEST_MODE === 'true' || import.meta.env.DEV
+
 export default function OtpLoginPanel() {
   const navigate = useNavigate()
   const { setTokens, setUserId } = useAuth()
@@ -45,7 +47,7 @@ export default function OtpLoginPanel() {
       return
     }
 
-    if (!termsChecked) {
+    if (!TEST_MODE && !termsChecked) {
       toast.open({
         message: 'Accept the Terms and Conditions to continue.',
         severity: 'warning',
@@ -56,6 +58,14 @@ export default function OtpLoginPanel() {
     setError('')
     requestOtp(email.trim().toLowerCase(), {
       onSuccess: (response: any) => {
+        if (response?.token && response?.refreshToken) {
+          sessionStorage.setItem('activeEmail', email.trim().toLowerCase())
+          setUserId(response?.user?.id)
+          setTokens(response.token, response.refreshToken)
+          navigate('/app', { replace: true })
+          return
+        }
+
         const inlineCode = extractInlineCode(response)
         setInlineOtp(inlineCode)
         setStep('verify')
@@ -75,6 +85,11 @@ export default function OtpLoginPanel() {
 
   const handleVerify = (event?: React.FormEvent) => {
     event?.preventDefault()
+
+    if (TEST_MODE) {
+      handleRequest(event)
+      return
+    }
 
     if (code.length !== 6) {
       setError('Enter the full 6-digit verification code.')
@@ -109,11 +124,13 @@ export default function OtpLoginPanel() {
         </Typography>
       </Stack>
 
-      <AuthCodePreview
-        title="Email OTP code"
-        code={inlineOtp}
-        helper="Enter this OTP to securely continue into your shipping dashboard."
-      />
+      {!TEST_MODE ? (
+        <AuthCodePreview
+          title="Email OTP code"
+          code={inlineOtp}
+          helper="Enter this OTP to securely continue into your shipping dashboard."
+        />
+      ) : null}
 
       {step === 'request' ? (
         <Box component="form" onSubmit={handleRequest}>
@@ -135,36 +152,38 @@ export default function OtpLoginPanel() {
             topMargin={false}
           />
 
-          <FormControlLabel
-            sx={{ mt: 1.2, mb: 2.2, alignItems: 'flex-start' }}
-            control={
-              <CustomCheckbox
-                checked={termsChecked}
-                onChange={(event) => setTermsChecked(event.target.checked)}
-                color="primary"
-              />
-            }
-            label={
-              <Typography sx={{ color: brand.inkSoft, fontSize: '0.86rem', mt: 0.25 }}>
-                I agree to{' '}
-                <Link
-                  component="button"
-                  underline="hover"
-                  onClick={() => setOpenTerms(true)}
-                  sx={{ color: brand.ink, fontWeight: 700 }}
-                >
-                  Terms and Conditions
-                </Link>
-              </Typography>
-            }
-          />
+          {!TEST_MODE ? (
+            <FormControlLabel
+              sx={{ mt: 1.2, mb: 2.2, alignItems: 'flex-start' }}
+              control={
+                <CustomCheckbox
+                  checked={termsChecked}
+                  onChange={(event) => setTermsChecked(event.target.checked)}
+                  color="primary"
+                />
+              }
+              label={
+                <Typography sx={{ color: brand.inkSoft, fontSize: '0.86rem', mt: 0.25 }}>
+                  I agree to{' '}
+                  <Link
+                    component="button"
+                    underline="hover"
+                    onClick={() => setOpenTerms(true)}
+                    sx={{ color: brand.ink, fontWeight: 700 }}
+                  >
+                    Terms and Conditions
+                  </Link>
+                </Typography>
+              }
+            />
+          ) : null}
 
           <CustomIconLoadingButton
             type="submit"
             text="Send verification code"
             loading={requesting}
             loadingText="Sending..."
-            disabled={Boolean(emailError) || !termsChecked}
+            disabled={Boolean(emailError) || (!TEST_MODE && !termsChecked)}
             styles={{ width: '100%' }}
           />
         </Box>
