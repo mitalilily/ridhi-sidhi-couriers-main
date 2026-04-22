@@ -60,15 +60,17 @@ export interface IUser {
   adminId?: string; // uuid → nullable FK to users.id
 
   /* --- basic info --- */
-  phone?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
+  phone?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
   emailVerified?: boolean;
   phoneVerified?: boolean;
 
   role?: "customer" | "admin" | string; // default "customer"
   googleId?: string | null;
+  pendingEmail?: string | null;
+  pendingPhone?: string | null;
 
   /* --- profile / onboarding --- */
   businessType?: string;
@@ -84,7 +86,7 @@ export interface IUser {
   salesChannels?: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   shippingPreferences?: Record<string, any>;
-  profilePicture?: string;
+  profilePicture?: string | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   paymentDetails?: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

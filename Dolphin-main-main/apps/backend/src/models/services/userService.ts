@@ -44,7 +44,8 @@ export type NewUser = typeof users.$inferInsert
 // A connection can be either the global DB or a scoped PgTransaction
 export type Tx = NodePgDatabase<typeof schema> // global pool client
 
-type UserUpdate = Partial<Omit<User, 'id'>> // We typically don't allow changing id or phone
+type UserInsert = Partial<NewUser>
+type UserUpdate = Partial<Omit<NewUser, 'id'>>
 
 const EMPTY_COMPANY: CompanyInfo = {
   businessName: '',
@@ -122,7 +123,7 @@ export const findUserByEmail = async (email: string, tx: Tx = db) => {
   })
 }
 
-const normalizeInsertData = (data: Partial<IUser>) => {
+const normalizeInsertData = (data: UserInsert) => {
   const cleaned = Object.fromEntries(
     Object.entries(data).filter(([, value]) => value !== undefined),
   ) as Record<string, unknown>
@@ -156,7 +157,7 @@ export const createUser = async (data: NewUser, tx: Tx = db) => {
   return user
 }
 
-export const updateUserByEmail = async (email: string, updateData: Partial<User>, tx: Tx = db) => {
+export const updateUserByEmail = async (email: string, updateData: UserUpdate, tx: Tx = db) => {
   const [updatedUser] = await tx
     .update(users)
     .set(normalizeInsertData(updateData))
@@ -438,7 +439,7 @@ export const handleEmailVerificationRequest = async (
               emailVerificationTokenExpiresAt: null,
               pendingEmail: null,
               pendingPhone: null,
-            }) as Partial<User>,
+            }) as UserInsert,
           )
           .where(eq(users.email, normalizedEmail))
           .returning()
@@ -467,7 +468,7 @@ export const handleEmailVerificationRequest = async (
           emailVerificationTokenExpiresAt: null,
           pendingEmail: null,
           pendingPhone: null,
-        } as Partial<IUser>,
+        } as UserInsert,
         tx,
       )
 
@@ -655,27 +656,27 @@ export const saveRefreshToken = async (
   previousToken: string | null = null,
 ) => {
   const isClearing = token === null
-  const expiresAt = isClearing ? sql`NULL` : new Date(Date.now() + ttlMs)
-  const previousExpiresAt = previousToken ? new Date(Date.now() + ttlMs) : sql`NULL`
+  const expiresAt = isClearing ? null : new Date(Date.now() + ttlMs)
+  const previousExpiresAt = previousToken ? new Date(Date.now() + ttlMs) : null
 
   return db
     .update(users)
     .set({
-      refreshToken: isClearing ? sql`NULL` : token,
+      refreshToken: token,
       refreshTokenExpiresAt: expiresAt,
-      previousRefreshToken: isClearing ? sql`NULL` : previousToken,
-      previousRefreshTokenExpiresAt: previousToken ? previousExpiresAt : sql`NULL`,
+      previousRefreshToken: isClearing ? null : previousToken,
+      previousRefreshTokenExpiresAt: previousExpiresAt,
     })
     .where(eq(users.id, userId))
     .returning({ id: users.id })
 }
 
-export async function createUserWithWallet(data: Partial<IUser>, txn: any = db) {
+export async function createUserWithWallet(data: UserInsert, txn: any = db) {
   return txn?.transaction(async (tx: any) => {
     // 1) insert user
     const [user] = await tx
       .insert(users)
-      .values(normalizeInsertData(data) as IUser)
+      .values(normalizeInsertData(data) as NewUser)
       .returning()
 
     // 2) insert wallet
