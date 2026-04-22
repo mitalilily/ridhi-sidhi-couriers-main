@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '../../api/axiosInstance'
+
 type RawAuthError = {
   response?: { data?: unknown }
   code?: string
@@ -37,9 +39,6 @@ export const getAuthErrorMessage = (err: unknown, fallback: string) => {
   const isNetwork = errObj.code === 'ERR_NETWORK' || !errObj.response
   if (!isNetwork) return message
 
-  const rawBase =
-    import.meta.env.VITE_API_URL ||
-    'https://ridhi-sidhi-couriers-main-production.up.railway.app/api'
-  const base = /^https?:\/\//i.test(rawBase) ? rawBase : `https://${rawBase}`
+  const base = API_BASE_URL || '/api'
   return `Cannot reach API (${base}). Start backend or set VITE_API_URL.`
 }

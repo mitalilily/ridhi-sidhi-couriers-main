@@ -3,13 +3,14 @@ import axios from 'axios'
 import { clearAuthTokens, getAuthTokens, setAuthTokens } from './tokenVault'
 
 const RAW_API_BASE_URL = import.meta.env.VITE_API_URL
-const DEFAULT_API_BASE_URL = 'https://ridhi-sidhi-couriers-main-production.up.railway.app/api'
+const DEFAULT_API_BASE_URL = '/api'
 
 const getApiBaseUrl = () => {
   const fallback = DEFAULT_API_BASE_URL.replace(/\/+$/, '')
 
   try {
     if (!RAW_API_BASE_URL) return fallback
+    if (RAW_API_BASE_URL.startsWith('/')) return RAW_API_BASE_URL.replace(/\/+$/, '') || '/api'
 
     const normalizedRawApiUrl = /^https?:\/\//i.test(RAW_API_BASE_URL)
       ? RAW_API_BASE_URL
@@ -45,7 +46,7 @@ const getApiBaseUrl = () => {
   }
 }
 
-const API_BASE_URL = getApiBaseUrl()
+export const API_BASE_URL = getApiBaseUrl()
 
 const api = axios.create({
   baseURL: API_BASE_URL,
