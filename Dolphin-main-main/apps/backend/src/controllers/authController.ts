@@ -19,6 +19,7 @@ import {
 
 import axios from 'axios'
 import { OTP_EXPIRY } from '../utils/constants'
+import { isTestModeEnabled, normalizeEmail } from '../utils/authConfig'
 
 import { eq } from 'drizzle-orm'
 import { db } from '../models/client'
@@ -46,14 +47,32 @@ const maskEmailForLog = (email: string) => {
 }
 
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000
-// Test-auth friendly defaults:
-// OTP is exposed inline unless explicitly disabled via env.
-const allowInlineOtp = parseBooleanEnv(process.env.ALLOW_INLINE_OTP, true)
-const exposeAuthCodes = parseBooleanEnv(process.env.EXPOSE_AUTH_CODES, true) || allowInlineOtp
-const testAuthMode = parseBooleanEnv(process.env.TEST_AUTH_MODE, true)
-const testAuthOtp = String(process.env.TEST_AUTH_OTP || '123456').trim()
+const allowInlineOtp = parseBooleanEnv(process.env.ALLOW_INLINE_OTP, false)
+const exposeAuthCodes = parseBooleanEnv(process.env.EXPOSE_AUTH_CODES, false) || allowInlineOtp
+const testAuthMode = isTestModeEnabled()
 
 export const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString()
+
+const issueAuthSession = async (user: any) => {
+  const accessToken = signAccessToken(user.id, user.role ?? 'customer')
+  const { token: refreshToken } = signRefreshToken(user.id, user.role ?? 'customer')
+  await saveRefreshToken(user.id, refreshToken, ONE_WEEK_MS)
+
+  return {
+    accessToken,
+    refreshToken,
+  }
+}
+
+const buildUserResponse = (user: any) => ({
+  id: user?.id,
+  phone: user?.phone ?? null,
+  phoneVerified: user?.phoneVerified ?? false,
+  email: user?.email ?? null,
+  emailVerified: user?.emailVerified ?? false,
+  profilePicture: user?.profilePicture ?? null,
+  role: user?.role ?? 'customer',
+})
 
 const sendSmsViaTwilio = async (phone: string, message: string) => {
   const client = twilio(process.env.TWILIO_ACCOUNT_SID!, process.env.TWILIO_AUTH_TOKEN!)
@@ -172,18 +191,24 @@ export const requestOtp = async (req: Request, res: Response): Promise<any> => {
     return res.status(400).json({ error: 'Invalid email format' })
   }
 
-  const normalizedEmail = email.trim().toLowerCase()
+  const normalizedEmail = normalizeEmail(email)
   const otp = generateOtp()
   const expiry = new Date(Date.now() + OTP_EXPIRY)
 
   if (testAuthMode) {
-    console.log('[Auth OTP] Test mode enabled, returning inline OTP without external dependencies', {
-      email: maskEmailForLog(normalizedEmail),
-      env,
-    })
-    return res.status(200).json({
-      message: 'Test OTP generated successfully',
-      otp: testAuthOtp,
+    const result = await handleEmailVerificationRequest(normalizedEmail, null, null)
+    const user = result.data?.user
+
+    if (!user) {
+      return res.status(500).json({ error: 'Unable to create test auth user' })
+    }
+
+    const { accessToken, refreshToken } = await issueAuthSession(user)
+    return res.status(result.status).json({
+      message: 'Authenticated in test mode',
+      token: accessToken,
+      refreshToken,
+      user: buildUserResponse(user),
       testAuth: true,
     })
   }
@@ -284,7 +309,9 @@ export const requestOtp = async (req: Request, res: Response): Promise<any> => {
 export const verifyOtp = async (req: Request, res: Response): Promise<any> => {
   const { email, otp } = req.body
 
-  if (!email || !otp) return res.status(400).json({ error: 'Email and OTP are required' })
+  if (!email || (!otp && !testAuthMode)) {
+    return res.status(400).json({ error: testAuthMode ? 'Email is required' : 'Email and OTP are required' })
+  }
 
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -293,35 +320,21 @@ export const verifyOtp = async (req: Request, res: Response): Promise<any> => {
   }
 
   try {
-    const normalizedEmail = email.trim().toLowerCase()
+    const normalizedEmail = normalizeEmail(email)
     if (testAuthMode) {
-      if (String(otp).trim() !== testAuthOtp) {
-        return res.status(400).json({ error: 'Incorrect OTP' })
+      const result = await handleEmailVerificationRequest(normalizedEmail, null, null)
+      const user = result.data?.user
+      if (!user) {
+        return res.status(500).json({ error: 'Unable to create test auth user' })
       }
-      // Fully DB-independent test login so UI auth can be validated
-      // even when database/email infrastructure is unavailable.
-      const testUser = {
-        id: `test-${Buffer.from(normalizedEmail).toString('base64').replace(/[^a-zA-Z0-9]/g, '').slice(0, 24)}`,
-        email: normalizedEmail,
-        role: 'customer',
-        phone: null as string | null,
-        phoneVerified: false,
-      }
-      const accessToken = signAccessToken(testUser.id, testUser.role)
-      const { token: refreshToken } = signRefreshToken(testUser.id, testUser.role)
+
+      const { accessToken, refreshToken } = await issueAuthSession(user)
 
       return res.json({
-        message: 'OTP verified successfully',
+        message: 'Authenticated in test mode',
         token: accessToken,
         refreshToken,
-        user: {
-          id: testUser.id,
-          phone: testUser.phone,
-          phoneVerified: testUser.phoneVerified,
-          email: testUser.email,
-          emailVerified: true,
-          role: testUser.role,
-        },
+        user: buildUserResponse(user),
       })
     }
 
@@ -412,6 +425,9 @@ export const requestEmailVerification = async (req: Request, res: Response): Pro
 
     // ✅ Employee active check
     if (user && user.role === 'employee') {
+      if (testAuthMode) {
+        // test mode should never block on employee status
+      } else {
       const [employeeRecord] = await db
         .select({
           isActive: employees.isActive,
@@ -424,15 +440,12 @@ export const requestEmailVerification = async (req: Request, res: Response): Pro
           error: 'Your account is temporarily suspended by your administrator.',
         })
       }
+      }
     }
 
     // ── If the flow returned a user (authenticated / verified)
     if (user) {
-      const accessToken = signAccessToken(user.id, user.role ?? 'customer')
-      const { token: refreshToken } = signRefreshToken(user.id, user.role ?? 'customer')
-
-      // Save refresh token to DB
-      await saveRefreshToken(user.id, refreshToken, ONE_WEEK_MS)
+      const { accessToken, refreshToken } = await issueAuthSession(user)
 
       result.data.token = accessToken
       result.data.refreshToken = refreshToken
@@ -452,11 +465,30 @@ export const requestEmailVerification = async (req: Request, res: Response): Pro
 export const verifyEmailToken = async (req: Request, res: Response): Promise<any> => {
   const { email, token } = req.body
 
-  if (!email || !token) {
-    return res.status(400).json({ error: 'Email and token are required' })
+  if (!email || (!token && !testAuthMode)) {
+    return res.status(400).json({
+      error: testAuthMode ? 'Email is required' : 'Email and token are required',
+    })
   }
 
   try {
+    if (testAuthMode) {
+      const result = await handleEmailVerificationRequest(email, null, null)
+      const user = result.data?.user
+      if (!user) {
+        return res.status(500).json({ error: 'Unable to create test auth user' })
+      }
+
+      const { accessToken, refreshToken } = await issueAuthSession(user)
+
+      return res.json({
+        message: 'Authenticated in test mode',
+        token: accessToken,
+        refreshToken,
+        user: buildUserResponse(user),
+      })
+    }
+
     const user = await findUserByEmail(email)
 
     if (!user) {
@@ -475,12 +507,7 @@ export const verifyEmailToken = async (req: Request, res: Response): Promise<any
     await markEmailVerified(email)
     await clearUserEmailToken(email)
     /* ── Sign & Set JWTs ────────────────────────────────────────────── */
-    const accessToken = signAccessToken(user.id, user.role ?? 'customer')
-
-    const { token: refreshToken } = signRefreshToken(user.id, user.role ?? 'customer')
-
-    /* ---------- persist newest refresh token ---------- */
-    await saveRefreshToken(user.id, refreshToken, ONE_WEEK_MS)
+    const { accessToken, refreshToken } = await issueAuthSession(user)
 
     return res.json({
       message: 'Email verified successfully',
@@ -550,7 +577,7 @@ export const googleOAuthLogin = async (req: Request, res: Response): Promise<any
             email,
             googleId,
             firstName: name,
-            phone: '',
+            phone: null,
             emailVerified: true,
             onboardingStep: 0,
             onboardingComplete: false,

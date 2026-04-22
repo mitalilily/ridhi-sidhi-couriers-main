@@ -18,6 +18,8 @@ import CodeInput from './CodeInput'
 import { extractInlineCode } from './inlineCode'
 import { brand } from '../../theme/brand'
 
+const TEST_MODE = import.meta.env.VITE_TEST_MODE === 'true' || import.meta.env.DEV
+
 interface CredentialAuthFormProps {
   mode: 'login' | 'signup'
 }
@@ -37,6 +39,7 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
 
   const { mutate: requestPasswordAccess, isPending: requesting } = useRequestPasswordLogin()
   const { mutate: verifyEmailOtp, isPending: verifying } = useVerifyEmailOtp()
+  const showForm = TEST_MODE || step === 'form'
 
   const emailError = useMemo(() => {
     if (!email) return 'Email is required.'
@@ -45,6 +48,7 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
   }, [email])
 
   const passwordError = useMemo(() => {
+    if (TEST_MODE) return ''
     if (!password) return 'Password is required.'
     if (password.length < 6) return 'Minimum 6 characters required.'
     return ''
@@ -52,6 +56,7 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
 
   const nameError = useMemo(() => {
     if (mode !== 'signup') return ''
+    if (TEST_MODE) return ''
     if (!name.trim()) return 'Name is required.'
     return ''
   }, [mode, name])
@@ -64,7 +69,7 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
       return
     }
 
-    if (!termsChecked) {
+    if (!TEST_MODE && !termsChecked) {
       toast.open({
         message: 'Accept the Terms and Conditions to continue.',
         severity: 'warning',
@@ -80,13 +85,10 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
     requestPasswordAccess(
       {
         email: email.trim().toLowerCase(),
-        password,
+        password: password.trim() || undefined,
       },
       {
         onSuccess: (response: any) => {
-          const verificationCode = extractInlineCode(response)
-          setInlineCode(verificationCode)
-
           if (response?.token && response?.refreshToken) {
             sessionStorage.setItem('activeEmail', email.trim().toLowerCase())
             setUserId(response?.user?.id)
@@ -94,6 +96,9 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
             navigate('/app', { replace: true })
             return
           }
+
+          const verificationCode = extractInlineCode(response)
+          setInlineCode(verificationCode)
 
           if (verificationCode || response?.message?.includes('Verification')) {
             setStep('verify')
@@ -124,7 +129,7 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
   const handleVerify = (event?: React.FormEvent) => {
     event?.preventDefault()
 
-    if (code.length !== 8) {
+    if (!TEST_MODE && code.length !== 8) {
       setError('Enter the full 8-character verification code.')
       return
     }
@@ -168,13 +173,15 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
         </Typography>
       </Stack>
 
-      <AuthCodePreview
-        title={mode === 'signup' ? 'Signup verification code' : 'Login verification code'}
-        code={inlineCode}
-        helper="Use this code to complete secure account verification and continue to your shipping dashboard."
-      />
+      {!TEST_MODE ? (
+        <AuthCodePreview
+          title={mode === 'signup' ? 'Signup verification code' : 'Login verification code'}
+          code={inlineCode}
+          helper="Use this code to complete secure account verification and continue to your shipping dashboard."
+        />
+      ) : null}
 
-      {step === 'form' ? (
+      {showForm ? (
         <Stack component="form" spacing={1.1} onSubmit={handleRequest}>
           {mode === 'signup' ? (
             <CustomInput
@@ -189,7 +196,7 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
               error={Boolean(name) && Boolean(nameError)}
               prefix={<FiUser color={brand.ink} size={15} />}
               autoFocus
-              required
+              required={!TEST_MODE}
               topMargin={false}
             />
           ) : null}
@@ -222,7 +229,7 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
             helperText={password ? passwordError : ''}
             error={Boolean(password) && Boolean(passwordError)}
             prefix={<MdPassword color={brand.ink} size={16} />}
-            required
+            required={!TEST_MODE}
           />
 
           {error ? (
@@ -231,36 +238,38 @@ export default function CredentialAuthForm({ mode }: CredentialAuthFormProps) {
             </Typography>
           ) : null}
 
-          <FormControlLabel
-            sx={{ mt: 0.5, mb: 1.2, alignItems: 'flex-start' }}
-            control={
-              <CustomCheckbox
-                checked={termsChecked}
-                onChange={(event) => setTermsChecked(event.target.checked)}
-                color="primary"
-              />
-            }
-            label={
-              <Typography sx={{ color: brand.inkSoft, fontSize: '0.86rem', mt: 0.25 }}>
-                I agree to{' '}
-                <Link
-                  component="button"
-                  underline="hover"
-                  onClick={() => setOpenTerms(true)}
-                  sx={{ color: brand.ink, fontWeight: 700 }}
-                >
-                  Terms and Conditions
-                </Link>
-              </Typography>
-            }
-          />
+          {!TEST_MODE ? (
+            <FormControlLabel
+              sx={{ mt: 0.5, mb: 1.2, alignItems: 'flex-start' }}
+              control={
+                <CustomCheckbox
+                  checked={termsChecked}
+                  onChange={(event) => setTermsChecked(event.target.checked)}
+                  color="primary"
+                />
+              }
+              label={
+                <Typography sx={{ color: brand.inkSoft, fontSize: '0.86rem', mt: 0.25 }}>
+                  I agree to{' '}
+                  <Link
+                    component="button"
+                    underline="hover"
+                    onClick={() => setOpenTerms(true)}
+                    sx={{ color: brand.ink, fontWeight: 700 }}
+                  >
+                    Terms and Conditions
+                  </Link>
+                </Typography>
+              }
+            />
+          ) : null}
 
           <CustomIconLoadingButton
             type="submit"
-            text={mode === 'signup' ? 'Create account' : 'Continue with password'}
+            text={TEST_MODE ? 'Continue' : mode === 'signup' ? 'Create account' : 'Continue with password'}
             loading={requesting}
-            loadingText={mode === 'signup' ? 'Creating...' : 'Checking...'}
-            disabled={Boolean(nameError || emailError || passwordError) || !termsChecked}
+            loadingText={TEST_MODE ? 'Accessing...' : mode === 'signup' ? 'Creating...' : 'Checking...'}
+            disabled={Boolean(emailError) || (!TEST_MODE && (Boolean(nameError || passwordError) || !termsChecked))}
             styles={{ width: '100%' }}
           />
         </Stack>

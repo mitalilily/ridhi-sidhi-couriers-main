@@ -14,6 +14,10 @@ async function runMigration() {
         __dirname,
         '../../src/drizzle/migrations/0003_add_service_provider_to_shipping_rates.sql',
       ),
+      path.join(
+        __dirname,
+        '../../src/drizzle/migrations/0004_auth_test_mode_nullable_fields.sql',
+      ),
     ]
 
     for (const migrationFile of migrationFiles) {

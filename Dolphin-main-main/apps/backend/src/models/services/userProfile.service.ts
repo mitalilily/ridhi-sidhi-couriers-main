@@ -17,6 +17,7 @@ import { plans } from '../schema/plans'
 import { userProfiles } from '../schema/userProfile'
 import { userPlans } from '../schema/userPlans'
 import { users } from '../schema/users'
+import { isTestModeEnabled, normalizeEmail } from '../../utils/authConfig'
 
 /**
  * Fetch the profile for a specific userId (returns null if none exists)
@@ -240,6 +241,66 @@ export const requestProfileEmailVerificationOTP = async (
 
   const currentEmail = profile.companyInfo.contactEmail
   const isNewEmail = updatedEmail && updatedEmail !== currentEmail
+  const finalEmail = updatedEmail ? normalizeEmail(updatedEmail) : currentEmail
+
+  if (isTestModeEnabled()) {
+    if (isNewEmail) {
+      const [emailProfileConflict] = await db
+        .select({ id: userProfiles.userId })
+        .from(userProfiles)
+        .where(
+          and(
+            sql`${userProfiles.companyInfo}->>'contactEmail' = ${finalEmail}`,
+            ne(userProfiles.userId, userId),
+          ),
+        )
+        .limit(1)
+
+      const [emailUserConflict] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(and(eq(users.email, finalEmail), ne(users.id, userId)))
+        .limit(1)
+
+      if (emailProfileConflict || emailUserConflict) {
+        throw new HttpError(409, 'E-mail already in use by another account')
+      }
+    }
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(users)
+        .set({
+          email: finalEmail,
+          pendingEmail: null,
+          emailVerificationToken: null,
+          emailVerificationTokenExpiresAt: null,
+          emailVerified: true,
+        })
+        .where(eq(users.id, userId))
+
+      await tx
+        .update(userProfiles)
+        .set({
+          companyInfo: sql`
+            jsonb_set(
+              jsonb_set(
+                ${userProfiles.companyInfo},
+                '{contactEmail}',
+                ${JSON.stringify(finalEmail)}::jsonb,
+                true
+              ),
+              '{POCEmailVerified}',
+              'true'::jsonb,
+              true
+            )
+          `,
+        })
+        .where(eq(userProfiles.userId, userId))
+    })
+
+    return
+  }
 
   /* 2️⃣ Uniqueness check only if it's a new address */
   if (isNewEmail) {
@@ -286,6 +347,44 @@ export const verifyProfileEmailOTP = async (
 
   if (!user) throw new HttpError(404, 'Profile not found')
 
+  const finalEmail = normalizeEmail(email)
+
+  if (isTestModeEnabled()) {
+    await db.transaction(async (tx) => {
+      await tx
+        .update(userProfiles)
+        .set({
+          companyInfo: sql`
+            jsonb_set(
+              jsonb_set(
+                ${userProfiles.companyInfo},
+                '{contactEmail}',
+                ${JSON.stringify(finalEmail)}::jsonb,
+                true
+              ),
+              '{POCEmailVerified}',
+              'true'::jsonb,
+              true
+            )
+          `,
+        })
+        .where(eq(userProfiles.userId, userId))
+
+      await tx
+        .update(users)
+        .set({
+          email: finalEmail,
+          pendingEmail: null,
+          emailVerificationToken: null,
+          emailVerificationTokenExpiresAt: null,
+          emailVerified: true,
+        })
+        .where(eq(users.id, userId))
+    })
+
+    return finalEmail
+  }
+
   if (
     !user.emailVerificationToken ||
     !user.emailVerificationTokenExpiresAt ||
@@ -299,8 +398,6 @@ export const verifyProfileEmailOTP = async (
   }
 
   /* 2️⃣ Decide final e‑mail */
-  const finalEmail = email
-
   const companyInfoWithEmail = sql`jsonb_set(
   ${userProfiles.companyInfo},
   '{contactEmail}',
@@ -351,6 +448,44 @@ export const verifyProfilePhoneOTP = async (
 
   if (!user) throw new HttpError(404, 'Profile not found')
 
+  const finalPhone = phone
+
+  if (isTestModeEnabled()) {
+    await db.transaction(async (tx) => {
+      await tx
+        .update(userProfiles)
+        .set({
+          companyInfo: sql`
+            jsonb_set(
+              jsonb_set(
+                ${userProfiles.companyInfo},
+                '{contactNumber}',
+                ${JSON.stringify(finalPhone)}::jsonb,
+                true
+              ),
+              '{POCPhoneVerified}',
+              'true'::jsonb,
+              true
+            )
+          `,
+        })
+        .where(eq(userProfiles.userId, userId))
+
+      await tx
+        .update(users)
+        .set({
+          phone: finalPhone,
+          pendingPhone: null,
+          otp: null,
+          otpExpiresAt: null,
+          phoneVerified: true,
+        })
+        .where(eq(users.id, userId))
+    })
+
+    return finalPhone
+  }
+
   if (!user.otp || !user.otpExpiresAt || user.otpExpiresAt < new Date()) {
     throw new HttpError(400, 'OTP expired or not requested')
   }
@@ -358,9 +493,6 @@ export const verifyProfilePhoneOTP = async (
   if (otp !== user.otp) {
     throw new HttpError(401, 'Invalid OTP')
   }
-
-  // 2️⃣ Final phone value
-  const finalPhone = phone
 
   const companyInfoWithPhone = sql`jsonb_set(
   ${userProfiles.companyInfo},
@@ -435,6 +567,65 @@ export const requestProfilePhoneVerificationOTP = async (
   }
 
   const isNewPhone = updatedPhone && parsed.national !== currentPhone
+
+  if (isTestModeEnabled()) {
+    if (isNewPhone) {
+      const [phoneConflict] = await db
+        .select({ id: userProfiles.userId })
+        .from(userProfiles)
+        .where(
+          and(
+            sql`${userProfiles.companyInfo}->>'contactNumber' = ${parsed.national}`,
+            ne(userProfiles.userId, userId),
+          ),
+        )
+        .limit(1)
+
+      const [userPhoneConflict] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(and(eq(users.phone, parsed.national), ne(users.id, userId)))
+        .limit(1)
+
+      if (phoneConflict || userPhoneConflict) {
+        throw new HttpError(409, 'Phone number already in use')
+      }
+    }
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(users)
+        .set({
+          phone: parsed.national,
+          pendingPhone: null,
+          otp: null,
+          otpExpiresAt: null,
+          phoneVerified: true,
+        })
+        .where(eq(users.id, userId))
+
+      await tx
+        .update(userProfiles)
+        .set({
+          companyInfo: sql`
+            jsonb_set(
+              jsonb_set(
+                ${userProfiles.companyInfo},
+                '{contactNumber}',
+                ${JSON.stringify(parsed.national)}::jsonb,
+                true
+              ),
+              '{POCPhoneVerified}',
+              'true'::jsonb,
+              true
+            )
+          `,
+        })
+        .where(eq(userProfiles.userId, userId))
+    })
+
+    return
+  }
 
   /* ───────────────── 3️⃣  Uniqueness check (only if new) ─────── */
   if (isNewPhone) {

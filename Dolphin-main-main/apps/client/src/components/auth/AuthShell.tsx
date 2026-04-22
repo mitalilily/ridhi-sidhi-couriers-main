@@ -33,7 +33,7 @@ const authHighlights = [
   },
   {
     title: 'Secure account access',
-    text: 'Quick OTP and password sign-in keeps your team connected to daily dispatch and delivery operations.',
+    text: 'Testing mode can skip OTP friction while still keeping password access and session handling in place.',
     icon: <FiShield size={18} />,
   },
   {
