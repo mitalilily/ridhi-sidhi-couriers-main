@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS "invoice_preferences" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  "user_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "prefix" varchar(10) NOT NULL DEFAULT 'INV',
+  "suffix" varchar(10) DEFAULT '',
+  "template" varchar(20) NOT NULL DEFAULT 'classic',
+  "include_logo" boolean NOT NULL DEFAULT true,
+  "include_signature" boolean NOT NULL DEFAULT true,
+  "logo_file" varchar(255),
+  "signature_file" varchar(255),
+  "seller_name" varchar(255),
+  "brand_name" varchar(255),
+  "gst_number" varchar(32),
+  "pan_number" varchar(32),
+  "seller_address" text,
+  "state_code" varchar(10),
+  "support_email" varchar(150),
+  "support_phone" varchar(50),
+  "invoice_notes" text,
+  "terms_and_conditions" text,
+  "created_at" timestamptz NOT NULL DEFAULT now(),
+  "updated_at" timestamptz NOT NULL DEFAULT now()
+);

@@ -250,7 +250,6 @@ export const requestOtp = async (req: Request, res: Response): Promise<any> => {
         email: normalizedEmail,
         otp,
         otpExpiresAt: expiry,
-        onboardingStep: 0,
         emailVerified: false,
       })
       console.log('[Auth OTP] Created new user with OTP', {
@@ -557,7 +556,7 @@ export const googleOAuthLogin = async (req: Request, res: Response): Promise<any
       return res.status(400).json({ error: 'Google ID token is invalid or missing email' })
     }
 
-    const { email, name, sub: googleId, picture } = payload
+    const { email, sub: googleId, picture } = payload
 
     // ✅ Step 3: Create or update user
     let user = await findUserByEmail(email)
@@ -567,7 +566,6 @@ export const googleOAuthLogin = async (req: Request, res: Response): Promise<any
         googleId,
         profilePicture: picture,
         emailVerified: true,
-        // firstName: user.firstName ?? name,
       })
     } else {
       await db.transaction(async (tx) => {
@@ -576,11 +574,8 @@ export const googleOAuthLogin = async (req: Request, res: Response): Promise<any
           {
             email,
             googleId,
-            firstName: name,
             phone: null,
             emailVerified: true,
-            onboardingStep: 0,
-            onboardingComplete: false,
             profilePicture: picture,
           },
           tx, // <-- transaction‑scoped Drizzle instance

@@ -46,4 +46,6 @@ tmp/
 next-env.d.ts
 
 # Database migrations
-src/drizzle/
+src/drizzle/*
+!src/drizzle/migrations/
+!src/drizzle/migrations/*.sql

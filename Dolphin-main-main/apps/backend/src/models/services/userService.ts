@@ -460,8 +460,6 @@ export const handleEmailVerificationRequest = async (
           passwordHash,
           googleId,
           emailVerified: true,
-          onboardingStep: 0,
-          onboardingComplete: false,
           otp: null,
           otpExpiresAt: null,
           emailVerificationToken: null,
@@ -604,7 +602,6 @@ export const handleEmailVerificationRequest = async (
         passwordHash,
         googleId,
         emailVerified: true,
-        onboardingStep: 0,
       })
       return { status: 201, data: { message: 'Account created via Google' } }
     }
@@ -621,7 +618,6 @@ export const handleEmailVerificationRequest = async (
       emailVerificationToken: token,
       emailVerificationTokenExpiresAt: expiresAt,
       emailVerified: false,
-      onboardingStep: 0,
     })
 
     shouldSendEmail = true

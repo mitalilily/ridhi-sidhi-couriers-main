@@ -18,6 +18,10 @@ async function runMigration() {
         __dirname,
         '../../src/drizzle/migrations/0004_auth_test_mode_nullable_fields.sql',
       ),
+      path.join(
+        __dirname,
+        '../../src/drizzle/migrations/0005_invoice_preferences_table.sql',
+      ),
     ]
 
     for (const migrationFile of migrationFiles) {
